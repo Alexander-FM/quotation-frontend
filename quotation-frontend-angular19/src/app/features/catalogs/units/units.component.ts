@@ -59,7 +59,7 @@ export class UnitsComponent implements OnInit {
   initForm(): void {
     this.form = this.formBuilder.group({
       id: [null],
-      name: ['', [Validators.required, Validators.minLength(3)]],
+      name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
       isActive: [true]
     });
@@ -103,7 +103,8 @@ export class UnitsComponent implements OnInit {
             this.loadUnits();
           },
           error: (err) => {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar la unidad' });
+            const errorMessage = this.getErrorMessage(err);
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
           }
         });
       }
@@ -129,9 +130,27 @@ export class UnitsComponent implements OnInit {
         this.loadUnits();
       },
       error: (err) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la unidad' });
+        const errorMessage = this.getErrorMessage(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
       }
     });
+  }
+
+  private getErrorMessage(error: any): string {
+    // Si el error tiene estructura de respuesta del backend
+    if (error.error?.body?.message) {
+      return error.error.body.message;
+    }
+    // Si es un error HTTP directo
+    if (error.error?.message) {
+      return error.error.message;
+    }
+    // Si es un error de Angular HttpErrorResponse
+    if (error.message) {
+      return error.message;
+    }
+    // Mensaje por defecto
+    return 'Ocurrió un error al procesar la solicitud';
   }
 
   closeDialog(): void {

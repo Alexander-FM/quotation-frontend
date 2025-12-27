@@ -13,7 +13,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
   login(credentials: LoginRequest): Observable<GenericResponse<TokenResponse>> {
     return this.http.post<GenericResponse<TokenResponse>>(`${this.apiUrl}/login`, credentials)
