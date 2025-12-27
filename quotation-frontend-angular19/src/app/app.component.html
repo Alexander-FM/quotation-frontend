@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card" *ngIf="showMenu">
   <p-menubar [model]="menuItems">
     <ng-template #start>
       <div class="flex align-items-center gap-2">
@@ -23,13 +23,21 @@
 
     <ng-template #end>
       <div class="flex align-items-center gap-2">
-        <input type="text" pInputText placeholder="Buscar" style="width: 200px" />
-        <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle" size="large" />
+        <span class="text-sm font-semibold text-color-secondary mr-2">{{ username }}</span>
+        <p-button
+          icon="pi pi-sign-out"
+          [rounded]="true"
+          [text]="true"
+          severity="danger"
+          (onClick)="logout()"
+          pTooltip="Cerrar Sesión"
+          tooltipPosition="bottom"
+        ></p-button>
       </div>
     </ng-template>
   </p-menubar>
 </div>
 
-<main class="p-3">
+<main [class.p-3]="showMenu">
   <router-outlet />
 </main>
