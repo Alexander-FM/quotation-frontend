@@ -1,0 +1,18 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4">Items</h1>
+  <button class="btn btn-primary" id="btnNewItem">Nuevo</button>
+</div>
+<table class="table table-sm table-striped" id="tblItems">
+  <thead>
+    <tr><th>Nombre</th><th>Código</th><th>Acciones</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+$(function(){
+  CatalogService.listItems().then(data=>{
+    const rows = (data||[]).map(x=>`<tr><td>${x.name||""}</td><td>${x.code||""}</td><td><a href="#" class="btn btn-link btn-sm">Editar</a></td></tr>`).join("");
+    $("#tblItems tbody").html(rows);
+  }).catch(()=>{ Utils.notify("Error cargando items","danger"); });
+});
+</script>

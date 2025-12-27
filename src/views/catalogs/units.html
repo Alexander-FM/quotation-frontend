@@ -1,0 +1,17 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4">Unidades de medida</h1>
+</div>
+<table class="table table-sm table-striped" id="tblUnits">
+  <thead>
+    <tr><th>Nombre</th><th>Abreviatura</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+$(function(){
+  CatalogService.listUnits().then(data=>{
+    const rows = (data||[]).map(x=>`<tr><td>${x.name||""}</td><td>${x.abbr||""}</td></tr>`).join("");
+    $("#tblUnits tbody").html(rows);
+  }).catch(()=>{ Utils.notify("Error cargando unidades","danger"); });
+});
+</script>
