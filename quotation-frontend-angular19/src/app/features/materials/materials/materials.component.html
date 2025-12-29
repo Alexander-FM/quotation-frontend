@@ -1,1 +1,153 @@
-<p>materials works!</p>
+<div class="p-4">
+  <p-toast />
+  <p-confirmDialog />
+
+  <div class="card">
+    <div class="flex justify-content-between align-items-center mb-4">
+      <h2 class="m-0">Gestión de Materiales</h2>
+      <p-button label="Nuevo Material" icon="pi pi-plus" (onClick)="openNew()" severity="success" />
+    </div>
+
+    <p-table [value]="materials" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]" [loading]="loading"
+      [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} materiales"
+      [tableStyle]="{ 'min-width': '90rem' }">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5%">ID</th>
+          <th style="width: 15%">Nombre</th>
+          <th style="width: 10%">Costo Unit.</th>
+          <th style="width: 12%">Unidad</th>
+          <th style="width: 15%">Tipo Cálc.</th>
+          <th style="width: 10%">Espesor (μ)</th>
+          <th style="width: 8%">Estado</th>
+          <th style="width: 10%">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-mat>
+        <tr>
+          <td>{{ mat.id }}</td>
+          <td>{{ mat.name }}</td>
+          <td>{{ mat.unitCost | currency }}</td>
+          <td>{{ mat.unidadOfMeasurementName }}</td>
+          <td>{{ mat.calculationType || '-' }}</td>
+          <td>{{ mat.thicknessMicrons || '-' }}</td>
+          <td>
+            <p-tag [value]="mat.isActive ? 'Activo' : 'Inactivo'" [severity]="mat.isActive ? 'success' : 'danger'" />
+          </td>
+          <td>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="editMaterial(mat)"
+              class="mr-2" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+              (onClick)="deleteMaterial(mat)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center">No se encontraron materiales</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Material' : 'Nuevo Material'" [modal]="true"
+    [style]="{ width: '800px' }" [draggable]="false" [resizable]="false">
+    <form [formGroup]="materialForm">
+      <div class="flex flex-column gap-3">
+        <div class="flex flex-column gap-2">
+          <label htmlFor="name">Nombre *</label>
+          <input pInputText id="name" formControlName="name" placeholder="Ingrese el nombre del material" />
+          <small class="text-red-500" *ngIf="materialForm.get('name')?.invalid && materialForm.get('name')?.touched">
+            El nombre es requerido (máx. 50 caracteres)
+          </small>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label htmlFor="description">Descripción</label>
+          <textarea class="w-full" pInputText id="description" formControlName="description" rows="3"
+            placeholder="Ingrese la descripción" class="w-full"></textarea>
+          <small class="text-red-500"
+            *ngIf="materialForm.get('description')?.invalid && materialForm.get('description')?.touched">
+            Máximo 255 caracteres
+          </small>
+        </div>
+
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="unitCost">Costo Unitario *</label>
+            <p-inputNumber id="unitCost" formControlName="unitCost" mode="currency" currency="USD"
+              [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="0.00" class="w-full" />
+            <small class="text-red-500"
+              *ngIf="materialForm.get('unitCost')?.invalid && materialForm.get('unitCost')?.touched">
+              El costo es requerido y debe ser mayor a cero
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="unidadOfMeasurementName">Unidad de Medida *</label>
+            <p-select id="unidadOfMeasurementName" formControlName="unidadOfMeasurementName"
+              [options]="unitsOfMeasurement" optionLabel="name" optionValue="name" placeholder="Seleccione"
+              class="w-full" />
+            <small class="text-red-500"
+              *ngIf="materialForm.get('unidadOfMeasurementName')?.invalid && materialForm.get('unidadOfMeasurementName')?.touched">
+              La unidad de medida es requerida
+            </small>
+          </div>
+        </div>
+
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="calculationType">Tipo de Cálculo</label>
+            <p-select id="calculationType" formControlName="calculationType" [options]="calculationTypes"
+              optionLabel="label" optionValue="value" placeholder="Seleccione" class="w-full" />
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="thicknessMicrons">Espesor (Micrones)</label>
+            <p-inputNumber id="thicknessMicrons" formControlName="thicknessMicrons" [useGrouping]="false"
+              placeholder="0" class="w-full" />
+          </div>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <div class="flex align-items-center gap-2">
+            <p-checkbox [(ngModel)]="hasAdjustmentFactor" [ngModelOptions]="{standalone: true}"
+              (onChange)="onAdjustmentFactorToggle($event)" [binary]="true" inputId="hasAdjustmentFactor" />
+            <label htmlFor="hasAdjustmentFactor">¿El material cuenta con ajuste de factor?</label>
+          </div>
+        </div>
+
+        <div *ngIf="hasAdjustmentFactor" class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="adjustmentFactorSelect">Factor de Ajuste *</label>
+            <p-select id="adjustmentFactorSelect" [(ngModel)]="selectedFactorId" [ngModelOptions]="{standalone: true}"
+              [options]="adjustmentFactors" optionLabel="name" optionValue="id" placeholder="Seleccione un factor"
+              (onChange)="onFactorSelected($event.value)" class="w-full" />
+            <small class="text-red-500" *ngIf="hasAdjustmentFactor && !selectedFactorId">
+              Debe seleccionar un factor de ajuste
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="adjustmentFactorValue">Valor Factor Ajuste</label>
+            <p-inputNumber id="adjustmentFactorValue" formControlName="adjustmentFactorValue" [minFractionDigits]="2"
+              [maxFractionDigits]="2" placeholder="0.00" [disabled]="true" class="w-full" />
+          </div>
+        </div>
+
+        <div class="flex align-items-center gap-2">
+          <p-checkbox formControlName="isActive" [binary]="true" inputId="isActive" />
+          <label htmlFor="isActive">Activo</label>
+        </div>
+      </div>
+
+      <div class="flex justify-content-end gap-2 mt-4">
+        <p-button label="Cancelar" severity="secondary" (onClick)="hideDialog()" type="button" />
+        <p-button label="Guardar" (onClick)="saveMaterial()" [disabled]="materialForm.invalid" />
+      </div>
+    </form>
+  </p-dialog>
+</div>
