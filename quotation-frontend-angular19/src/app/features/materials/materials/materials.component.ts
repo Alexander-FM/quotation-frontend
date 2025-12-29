@@ -53,6 +53,7 @@ export class MaterialsComponent implements OnInit {
   loading = false;
   hasAdjustmentFactor = false;
   selectedFactorId: number | null = null;
+  isPrintingFactorSelected = false;
 
   constructor(
     private materialService: MaterialService,
@@ -165,6 +166,7 @@ export class MaterialsComponent implements OnInit {
 
   onAdjustmentFactorToggle(event: any): void {
     this.hasAdjustmentFactor = event.checked;
+    this.isPrintingFactorSelected = false;
     if (!this.hasAdjustmentFactor) {
       this.selectedFactorId = null;
       this.materialForm.patchValue({
@@ -192,7 +194,8 @@ export class MaterialsComponent implements OnInit {
 
       // Si el factor contiene "impresion" o "impresión", limpiar thicknessMicrons
       const nameL = selectedFactor.name.toLowerCase();
-      if (nameL.includes('impresion') || nameL.includes('impresión')) {
+      this.isPrintingFactorSelected = nameL.includes('impresion') || nameL.includes('impresión');
+      if (this.isPrintingFactorSelected) {
         this.materialForm.patchValue({ thicknessMicrons: null });
       }
     }
@@ -223,6 +226,15 @@ export class MaterialsComponent implements OnInit {
       isActive: mat.isActive
     });
     this.displayDialog = true;
+  }
+
+  getCalculationTypeLabel(value: any): string {
+    const normalized = this.normalizeCalcType(value);
+    if (normalized) return normalized as unknown as string;
+    if (typeof value === 'string' && value.length > 0) {
+      return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    }
+    return '-';
   }
 
   deleteMaterial(mat: MaterialResponseDto): void {

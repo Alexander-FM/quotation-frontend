@@ -31,7 +31,7 @@
           <td>{{ mat.name }}</td>
           <td>{{ mat.unitCost | currency }}</td>
           <td>{{ mat.unidadOfMeasurementName }}</td>
-          <td>{{ mat.calculationType || '-' }}</td>
+          <td>{{ getCalculationTypeLabel(mat.calculationType) }}</td>
           <td>{{ mat.thicknessMicrons || '-' }}</td>
           <td>
             <p-tag [value]="mat.isActive ? 'Activo' : 'Inactivo'" [severity]="mat.isActive ? 'success' : 'danger'" />
@@ -89,7 +89,7 @@
           <div class="field col-6">
             <label htmlFor="unidadOfMeasurementName">Unidad de Medida *</label>
             <p-select id="unidadOfMeasurementName" formControlName="unidadOfMeasurementName"
-              [options]="unitsOfMeasurement" optionLabel="name" optionValue="name" placeholder="Seleccione"
+              [options]="unitsOfMeasurement" optionLabel="description" optionValue="name" placeholder="Seleccione"
               class="w-full" />
             <small class="text-red-500"
               *ngIf="materialForm.get('unidadOfMeasurementName')?.invalid && materialForm.get('unidadOfMeasurementName')?.touched">
@@ -103,12 +103,6 @@
             <label htmlFor="calculationType">Tipo de Cálculo</label>
             <p-select id="calculationType" formControlName="calculationType" [options]="calculationTypes"
               optionLabel="label" optionValue="value" placeholder="Seleccione" class="w-full" />
-          </div>
-
-          <div class="field col-6">
-            <label htmlFor="thicknessMicrons">Espesor (Micrones)</label>
-            <p-inputNumber id="thicknessMicrons" formControlName="thicknessMicrons" [useGrouping]="false"
-              placeholder="0" class="w-full" />
           </div>
         </div>
 
@@ -138,6 +132,17 @@
           </div>
         </div>
 
+        <div *ngIf="hasAdjustmentFactor" class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="thicknessMicrons">Espesor (Micrones)</label>
+            <p-inputNumber id="thicknessMicrons" formControlName="thicknessMicrons" [useGrouping]="false"
+              placeholder="1000 Micrones" class="w-full" [disabled]="isPrintingFactorSelected" />
+            <small class="text-red-500" *ngIf="isPrintingFactorSelected">
+              Para factor de impresión, el espesor no se aplica
+            </small>
+          </div>
+        </div>
+
         <div class="flex align-items-center gap-2">
           <p-checkbox formControlName="isActive" [binary]="true" inputId="isActive" />
           <label htmlFor="isActive">Activo</label>
@@ -146,7 +151,7 @@
 
       <div class="flex justify-content-end gap-2 mt-4">
         <p-button label="Cancelar" severity="secondary" (onClick)="hideDialog()" type="button" />
-        <p-button label="Guardar" (onClick)="saveMaterial()" [disabled]="materialForm.invalid" />
+        <p-button label="Guardar" (onClick)="saveMaterial()" [disabled]="materialForm.invalid || (hasAdjustmentFactor && !selectedFactorId)" />
       </div>
     </form>
   </p-dialog>
