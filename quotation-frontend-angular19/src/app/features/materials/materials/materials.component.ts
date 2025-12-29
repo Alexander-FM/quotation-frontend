@@ -94,6 +94,24 @@ export class MaterialsComponent implements OnInit {
     }));
   }
 
+  private normalizeCalcType(value: any): MaterialCalculationTypeEnum | null {
+    if (!value) return null;
+    const map: Record<string, MaterialCalculationTypeEnum> = {
+      SIMPLE: MaterialCalculationTypeEnum.SIMPLE,
+      Simple: MaterialCalculationTypeEnum.SIMPLE,
+      YIELD_BASED: MaterialCalculationTypeEnum.YIELD_BASED,
+      'Basado en el rendimiento': MaterialCalculationTypeEnum.YIELD_BASED,
+      VOLUME_DM: MaterialCalculationTypeEnum.VOLUME_DM,
+      'Volumen en decímetros cúbicos': MaterialCalculationTypeEnum.VOLUME_DM,
+      AREA: MaterialCalculationTypeEnum.AREA,
+      Area: MaterialCalculationTypeEnum.AREA
+    };
+    const direct = map[value];
+    if (direct) return direct;
+    const isEnumValue = Object.values(MaterialCalculationTypeEnum).includes(value as MaterialCalculationTypeEnum);
+    return isEnumValue ? (value as MaterialCalculationTypeEnum) : null;
+  }
+
   loadMaterials(): void {
     this.loading = true;
     this.materialService.getAll().subscribe({
@@ -198,7 +216,7 @@ export class MaterialsComponent implements OnInit {
       description: mat.description || '',
       unitCost: mat.unitCost,
       unidadOfMeasurementName: mat.unidadOfMeasurementName,
-      calculationType: mat.calculationType || null,
+      calculationType: this.normalizeCalcType(mat.calculationType),
       adjustmentFactorName: mat.adjustmentFactorName || '',
       adjustmentFactorValue: mat.adjustmentFactorValue || null,
       thicknessMicrons: mat.thicknessMicrons || null,
