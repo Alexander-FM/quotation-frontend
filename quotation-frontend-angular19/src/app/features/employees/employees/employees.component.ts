@@ -17,6 +17,7 @@ import { CatalogItemService } from '../../../services/catalog-item.service';
 import { CatalogItemResponseDto } from '../../../models/catalog-item.model';
 import { UserService } from '../../../services/user.service';
 import { UserResponseDto } from '../../../models/user.model';
+import { ErrorParser } from '../../../utils/error-parser.util';
 
 @Component({
   selector: 'app-employees',
@@ -123,8 +124,8 @@ export class EmployeesComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
         this.loading = false;
       }
     });
@@ -138,8 +139,8 @@ export class EmployeesComponent implements OnInit {
         );
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
@@ -150,8 +151,8 @@ export class EmployeesComponent implements OnInit {
         this.users = response.body || [];
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
@@ -190,8 +191,8 @@ export class EmployeesComponent implements OnInit {
             this.loadEmployees();
           },
           error: (error) => {
-            const errorMessage = this.getErrorMessage(error);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+            const errorInfo = ErrorParser.parse(error);
+            this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
           }
         });
       }
@@ -218,8 +219,8 @@ export class EmployeesComponent implements OnInit {
         this.loadEmployees();
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
@@ -229,10 +230,4 @@ export class EmployeesComponent implements OnInit {
     this.employeeForm.reset();
   }
 
-  private getErrorMessage(error: any): string {
-    if (error?.error?.body?.message) return error.error.body.message;
-    if (error?.error?.message) return error.error.message;
-    if (error?.message) return error.message;
-    return 'Ocurrió un error al procesar la solicitud';
-  }
 }

@@ -9,6 +9,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth.service';
+import { ErrorParser } from '../../../utils/error-parser.util';
 
 @Component({
   selector: 'app-login',
@@ -81,10 +82,11 @@ export class LoginComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         console.error('Error de login:', err);
+        const errorInfo = ErrorParser.parse(err);
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: 'Usuario o contraseña incorrectos'
+          summary: errorInfo.summary,
+          detail: errorInfo.detail
         });
       },
       complete: () => {

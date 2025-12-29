@@ -12,6 +12,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CatalogItemService } from '../../../services/catalog-item.service';
 import { CatalogItemRequestDto, CatalogItemResponseDto } from '../../../models/catalog-item.model';
+import { ErrorParser } from '../../../utils/error-parser.util';
 
 @Component({
   selector: 'app-items',
@@ -74,8 +75,8 @@ export class ItemsComponent implements OnInit {
         this.items = response.body;
       },
       error: (err) => {
-        const errorMessage = this.getErrorMessage(err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(err);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
@@ -104,8 +105,8 @@ export class ItemsComponent implements OnInit {
             this.loadItems();
           },
           error: (err) => {
-            const errorMessage = this.getErrorMessage(err);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+            const errorInfo = ErrorParser.parse(err);
+            this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
           }
         });
       }
@@ -131,22 +132,10 @@ export class ItemsComponent implements OnInit {
         this.loadItems();
       },
       error: (err) => {
-        const errorMessage = this.getErrorMessage(err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(err);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
 
-  private getErrorMessage(error: any): string {
-    if (error.error?.body?.message) {
-      return error.error.body.message;
-    }
-    if (error.error?.message) {
-      return error.error.message;
-    }
-    if (error.message) {
-      return error.message;
-    }
-    return 'Ocurrió un error al procesar la solicitud';
-  }
 }

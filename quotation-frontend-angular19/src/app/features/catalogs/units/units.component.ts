@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { UnitOfMeasurementService } from '../../../services/unit-of-measurement.service';
 import { UnitOfMeasurementResponseDto, UnitOfMeasurementRequestDto } from '../../../models/unit-of-measurement.model';
+import { ErrorParser } from '../../../utils/error-parser.util';
 
 @Component({
   selector: 'app-units',
@@ -103,8 +104,8 @@ export class UnitsComponent implements OnInit {
             this.loadUnits();
           },
           error: (err) => {
-            const errorMessage = this.getErrorMessage(err);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+            const errorInfo = ErrorParser.parse(err);
+            this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
           }
         });
       }
@@ -130,28 +131,13 @@ export class UnitsComponent implements OnInit {
         this.loadUnits();
       },
       error: (err) => {
-        const errorMessage = this.getErrorMessage(err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(err);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
 
-  private getErrorMessage(error: any): string {
-    // Si el error tiene estructura de respuesta del backend
-    if (error.error?.body?.message) {
-      return error.error.body.message;
-    }
-    // Si es un error HTTP directo
-    if (error.error?.message) {
-      return error.error.message;
-    }
-    // Si es un error de Angular HttpErrorResponse
-    if (error.message) {
-      return error.message;
-    }
-    // Mensaje por defecto
-    return 'Ocurrió un error al procesar la solicitud';
-  }
+
 
   closeDialog(): void {
     this.dialogVisible = false;

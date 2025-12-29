@@ -15,6 +15,7 @@ import { UserService } from '../../../services/user.service';
 import { RoleService } from '../../../services/role.service';
 import { UserRequestDto, UserResponseDto } from '../../../models/user.model';
 import { RoleResponseDto } from '../../../models/role.model';
+import { ErrorParser } from '../../../utils/error-parser.util';
 
 @Component({
   selector: 'app-users',
@@ -77,8 +78,8 @@ export class UsersComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
         this.loading = false;
       }
     });
@@ -90,8 +91,8 @@ export class UsersComponent implements OnInit {
         this.roles = (response.body || []).filter(r => r.isActive);
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
@@ -126,8 +127,8 @@ export class UsersComponent implements OnInit {
             this.loadUsers();
           },
           error: (error) => {
-            const errorMessage = this.getErrorMessage(error);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+            const errorInfo = ErrorParser.parse(error);
+            this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
           }
         });
       }
@@ -164,8 +165,8 @@ export class UsersComponent implements OnInit {
         this.loadUsers();
       },
       error: (error) => {
-        const errorMessage = this.getErrorMessage(error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        const errorInfo = ErrorParser.parse(error);
+        this.messageService.add({ severity: 'error', summary: errorInfo.summary, detail: errorInfo.detail });
       }
     });
   }
@@ -175,16 +176,4 @@ export class UsersComponent implements OnInit {
     this.userForm.reset();
   }
 
-  private getErrorMessage(error: any): string {
-    if (error?.error?.body?.message) {
-      return error.error.body.message;
-    }
-    if (error?.error?.message) {
-      return error.error.message;
-    }
-    if (error?.message) {
-      return error.message;
-    }
-    return 'Ocurrió un error al procesar la solicitud';
-  }
 }
