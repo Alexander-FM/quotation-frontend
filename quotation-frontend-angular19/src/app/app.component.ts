@@ -79,7 +79,7 @@ export class AppComponent implements OnInit {
         icon: 'pi-id-card',
         items: [
           { label: 'Empleados', icon: 'pi-briefcase', routerLink: '/employees' },
-          { label: 'Roles', icon: 'pi-lock', disabled: true },
+          { label: 'Roles', icon: 'pi-lock', routerLink: '/employees/roles' },
           { label: 'Usuarios', icon: 'pi-user', disabled: true }
         ]
       },

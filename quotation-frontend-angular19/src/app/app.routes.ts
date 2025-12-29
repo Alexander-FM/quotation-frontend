@@ -45,7 +45,17 @@ export const routes: Routes = [
 	{
 		path: 'employees',
 		canActivate: [authGuard],
-		loadComponent: () => import('./features/employees/employees/employees.component').then((m) => m.EmployeesComponent)
+		children: [
+			{
+				path: 'roles',
+				loadComponent: () => import('./features/employees/roles/roles.component').then((m) => m.RolesComponent)
+			},
+			{
+				path: '',
+				loadComponent: () => import('./features/employees/employees/employees.component').then((m) => m.EmployeesComponent)
+			},
+			{ path: '', pathMatch: 'full', redirectTo: '' }
+		]
 	},
 	{
 		path: 'materials',
