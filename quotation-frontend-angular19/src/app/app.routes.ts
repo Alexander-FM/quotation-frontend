@@ -51,10 +51,13 @@ export const routes: Routes = [
 				loadComponent: () => import('./features/employees/roles/roles.component').then((m) => m.RolesComponent)
 			},
 			{
+				path: 'users',
+				loadComponent: () => import('./features/employees/users/users.component').then((m) => m.UsersComponent)
+			},
+			{
 				path: '',
 				loadComponent: () => import('./features/employees/employees/employees.component').then((m) => m.EmployeesComponent)
-			},
-			{ path: '', pathMatch: 'full', redirectTo: '' }
+			}
 		]
 	},
 	{

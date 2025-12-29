@@ -49,7 +49,6 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.showMenu = !this.router.url.includes('/auth');
-    this.username = this.authService.getUsername();
     this.initMenu();
   }
 
@@ -80,7 +79,7 @@ export class AppComponent implements OnInit {
         items: [
           { label: 'Empleados', icon: 'pi-briefcase', routerLink: '/employees' },
           { label: 'Roles', icon: 'pi-lock', routerLink: '/employees/roles' },
-          { label: 'Usuarios', icon: 'pi-user', disabled: true }
+          { label: 'Usuarios', icon: 'pi-user', routerLink: '/employees/users' }
         ]
       },
       {
