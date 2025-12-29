@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TagModule } from 'primeng/tag';
@@ -27,7 +27,7 @@ import { CatalogItemResponseDto } from '../../../models/catalog-item.model';
     DialogModule,
     InputTextModule,
     CheckboxModule,
-    DropdownModule,
+    SelectModule,
     ToastModule,
     ConfirmDialogModule,
     TagModule

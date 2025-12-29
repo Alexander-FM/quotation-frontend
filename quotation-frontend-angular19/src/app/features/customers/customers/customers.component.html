@@ -107,14 +107,14 @@
         <div class="formgrid grid">
           <div class="field col-6">
             <label htmlFor="documentTypeCode">Tipo de Documento *</label>
-            <p-dropdown
+            <p-select
               id="documentTypeCode"
               formControlName="documentTypeCode"
               [options]="documentTypes"
               optionLabel="code"
               optionValue="code"
               placeholder="Seleccione"
-              [style]="{ width: '100%' }" />
+              class="w-full" />
             <small
               class="text-red-500"
               *ngIf="customerForm.get('documentTypeCode')?.invalid && customerForm.get('documentTypeCode')?.touched">

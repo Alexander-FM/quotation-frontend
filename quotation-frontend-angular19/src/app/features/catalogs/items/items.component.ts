@@ -5,7 +5,7 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -23,7 +23,7 @@ import { CatalogItemRequestDto, CatalogItemResponseDto } from '../../../models/c
     ButtonModule,
     DialogModule,
     InputTextModule,
-    DropdownModule,
+    SelectModule,
     CheckboxModule,
     ToastModule,
     ConfirmDialogModule
