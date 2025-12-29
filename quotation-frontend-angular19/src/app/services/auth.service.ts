@@ -81,4 +81,29 @@ export class AuthService {
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }
+
+  // Helpers de expiración del Access Token
+  getIssuedAtMs(): number | null {
+    const issuedAt = localStorage.getItem('issued_at');
+    if (!issuedAt) return null;
+    const date = new Date(issuedAt);
+    const ms = date.getTime();
+    return isNaN(ms) ? null : ms;
+  }
+
+  getExpiresInMs(): number | null {
+    const expiresInStr = localStorage.getItem('expires_in');
+    if (!expiresInStr) return null;
+    const val = Number(expiresInStr);
+    return isNaN(val) ? null : val;
+  }
+
+  isAccessTokenExpiringSoon(thresholdMs: number = 60000): boolean {
+    const issuedAtMs = this.getIssuedAtMs();
+    const expiresInMs = this.getExpiresInMs();
+    if (issuedAtMs == null || expiresInMs == null) return false;
+    const expiryTime = issuedAtMs + expiresInMs;
+    const remaining = expiryTime - Date.now();
+    return remaining <= thresholdMs;
+  }
 }
