@@ -1,1 +1,220 @@
-<p>customers works!</p>
+<div class="p-4">
+  <p-toast />
+  <p-confirmDialog />
+
+  <div class="card">
+    <div class="flex justify-content-between align-items-center mb-4">
+      <h2 class="m-0">Gestión de Clientes</h2>
+      <p-button
+        label="Nuevo Cliente"
+        icon="pi pi-plus"
+        (onClick)="openNew()"
+        severity="success" />
+    </div>
+
+    <p-table
+      [value]="customers"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [loading]="loading"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} clientes"
+      [tableStyle]="{ 'min-width': '60rem' }">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5%">ID</th>
+          <th style="width: 20%">Compañía</th>
+          <th style="width: 10%">Tipo Doc.</th>
+          <th style="width: 12%">Nro. Documento</th>
+          <th style="width: 18%">Email</th>
+          <th style="width: 12%">Teléfono</th>
+          <th style="width: 10%">Teléfono 2</th>
+          <th style="width: 8%">Estado</th>
+          <th style="width: 10%">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-customer>
+        <tr>
+          <td>{{ customer.id }}</td>
+          <td>{{ customer.companyName }}</td>
+          <td>{{ customer.documentTypeCode }}</td>
+          <td>{{ customer.documentNumber }}</td>
+          <td>{{ customer.email }}</td>
+          <td>{{ customer.phoneNumber }}</td>
+          <td>{{ customer.phoneNumber2 || '-' }}</td>
+          <td>
+            <p-tag
+              [value]="customer.isActive ? 'Activo' : 'Inactivo'"
+              [severity]="customer.isActive ? 'success' : 'danger'" />
+          </td>
+          <td>
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              severity="info"
+              (onClick)="editCustomer(customer)"
+              pTooltip="Editar"
+              tooltipPosition="top"
+              class="mr-2" />
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (onClick)="deleteCustomer(customer)"
+              pTooltip="Eliminar"
+              tooltipPosition="top" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center">No se encontraron clientes</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    [(visible)]="displayDialog"
+    [header]="isEditMode ? 'Editar Cliente' : 'Nuevo Cliente'"
+    [modal]="true"
+    [style]="{width: '600px'}"
+    [draggable]="false"
+    [resizable]="false">
+
+    <form [formGroup]="customerForm">
+      <div class="flex flex-column gap-3">
+        <div class="flex flex-column gap-2">
+          <label htmlFor="companyName">Nombre de Compañía *</label>
+          <input
+            pInputText
+            id="companyName"
+            formControlName="companyName"
+            placeholder="Ingrese el nombre de la compañía" />
+          <small
+            class="text-red-500"
+            *ngIf="customerForm.get('companyName')?.invalid && customerForm.get('companyName')?.touched">
+            El nombre de la compañía es requerido
+          </small>
+        </div>
+
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="documentTypeCode">Tipo de Documento *</label>
+            <p-dropdown
+              id="documentTypeCode"
+              formControlName="documentTypeCode"
+              [options]="documentTypes"
+              optionLabel="code"
+              optionValue="code"
+              placeholder="Seleccione"
+              [style]="{ width: '100%' }" />
+            <small
+              class="text-red-500"
+              *ngIf="customerForm.get('documentTypeCode')?.invalid && customerForm.get('documentTypeCode')?.touched">
+              El tipo de documento es requerido
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="documentNumber">Número de Documento *</label>
+            <input
+              pInputText
+              id="documentNumber"
+              formControlName="documentNumber"
+              [maxlength]="customerForm.get('documentTypeCode')?.value === 'RUC' ? 11 : customerForm.get('documentTypeCode')?.value === 'DNI' ? 8 : 20"
+              placeholder="Ingrese el número" />
+            <small
+              class="text-red-500"
+              *ngIf="customerForm.get('documentNumber')?.invalid && customerForm.get('documentNumber')?.touched">
+              <span *ngIf="customerForm.get('documentTypeCode')?.value === 'RUC'">
+                El RUC debe tener exactamente 11 dígitos numéricos
+              </span>
+              <span *ngIf="customerForm.get('documentTypeCode')?.value === 'DNI'">
+                El DNI debe tener exactamente 8 dígitos numéricos
+              </span>
+              <span *ngIf="customerForm.get('documentTypeCode')?.value !== 'RUC' && customerForm.get('documentTypeCode')?.value !== 'DNI'">
+                El número de documento es requerido (máx. 20 caracteres)
+              </span>
+            </small>
+          </div>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label htmlFor="email">Email *</label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Ingrese el email" />
+          <small
+            class="text-red-500"
+            *ngIf="customerForm.get('email')?.invalid && customerForm.get('email')?.touched">
+            El email es requerido y debe ser válido
+          </small>
+        </div>
+
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="phoneNumber">Teléfono Principal *</label>
+            <input
+              pInputText
+              id="phoneNumber"
+              formControlName="phoneNumber"
+              maxlength="9"
+              placeholder="Ej: 999999999"
+              (input)="onPhoneInput('phoneNumber', $event)" />
+            <small
+              class="text-red-500"
+              *ngIf="customerForm.get('phoneNumber')?.invalid && customerForm.get('phoneNumber')?.touched">
+              El teléfono debe tener exactamente 9 dígitos numéricos
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="phoneNumber2">Teléfono Secundario</label>
+            <input
+              pInputText
+              id="phoneNumber2"
+              formControlName="phoneNumber2"
+              maxlength="9"
+              placeholder="Ej: 999999999 (Opcional)"
+              (input)="onPhoneInput('phoneNumber2', $event)" />
+            <small
+              class="text-red-500"
+              *ngIf="customerForm.get('phoneNumber2')?.invalid && customerForm.get('phoneNumber2')?.touched">
+              El teléfono secundario debe tener exactamente 9 dígitos numéricos
+            </small>
+          </div>
+        </div>
+
+        <div class="flex align-items-center gap-2">
+          <p-checkbox
+            formControlName="isActive"
+            [binary]="true"
+            inputId="isActive" />
+          <label htmlFor="isActive">Activo</label>
+        </div>
+      </div>
+
+      <div class="flex justify-content-end gap-2 mt-4">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="hideDialog()"
+          type="button" />
+        <p-button
+          label="Guardar"
+          (onClick)="saveCustomer()"
+          [disabled]="customerForm.invalid" />
+      </div>
+    </form>
+  </p-dialog>
+</div>

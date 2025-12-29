@@ -39,8 +39,8 @@ export class ItemsComponent implements OnInit {
   isEditMode = false;
 
   categories = [
-    { label: 'DOCUMENT_TYPE', value: 'DOCUMENT_TYPE' },
-    { label: 'IDENTIFICATION_TYPE', value: 'IDENTIFICATION_TYPE' },
+    { label: 'TIPO_DOCUMENTO', value: 'TIPO_DOCUMENTO' },
+    { label: 'TIPO_IDENTIFICACION', value: 'TIPO_IDENTIFICACION' },
     { label: 'TIPO_CAMBIO', value: 'TIPO_CAMBIO' },
     { label: 'OTROS', value: 'OTROS' }
   ];
