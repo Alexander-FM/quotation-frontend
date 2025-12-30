@@ -1,1 +1,242 @@
-<p>quotations works!</p>
+<div class="p-4">
+  <p-toast />
+  <p-confirmDialog />
+
+  <div class="card">
+    <div class="flex justify-content-between align-items-center mb-4">
+      <h2 class="m-0">Gestión de Cotizaciones</h2>
+      <p-button label="Nueva Cotización" icon="pi pi-plus" (onClick)="openNew()" severity="success" />
+    </div>
+
+    <p-table [value]="quotations" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]" [loading]="loading"
+      [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} cotizaciones"
+      dataKey="id" [expandedRowKeys]="expandedRows" [tableStyle]="{ 'min-width': '75rem' }">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5%"></th>
+          <th style="width: 5%">ID</th>
+          <th style="width: 15%">Cliente</th>
+          <th style="width: 15%">Vendedor</th>
+          <th style="width: 12%">Estado</th>
+          <th style="width: 15%">Total</th>
+          <th style="width: 12%">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-quot let-expanded="expanded">
+        <tr>
+          <td>
+            <p-button type="button" [pRowToggler]="quot" [text]="true" [rounded]="true" [plain]="true"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+          </td>
+          <td>{{ quot.id }}</td>
+          <td>{{ quot.customerName }}</td>
+          <td>{{ quot.employeeName }}</td>
+          <td>
+            <p-tag [value]="quot.state" [severity]="getStateSeverity(quot.state)" />
+          </td>
+          <td>{{ quot.totalProductionCost | currency }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="editQuotation(quot)"
+              class="mr-2" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+              (onClick)="deleteQuotation(quot)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="rowexpansion" let-quot>
+        <tr>
+          <td colspan="7">
+            <div class="p-3">
+              <h5>Módulos Cotizados</h5>
+              <p-table [value]="quot.details" dataKey="id">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 5%"></th>
+                    <th style="width: 20%">Módulo</th>
+                    <th style="width: 10%">Cantidad</th>
+                    <th style="width: 12%">Costo Unit.</th>
+                    <th style="width: 12%">Precio Sug.</th>
+                    <th style="width: 15%">Total Línea</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-detail let-expanded="expanded">
+                  <tr>
+                    <td>
+                      <p-button type="button" [pRowToggler]="detail" [text]="true" [rounded]="true" [plain]="true"
+                        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                    </td>
+                    <td>{{ detail.module?.name }}</td>
+                    <td>{{ detail.quantity }}</td>
+                    <td>{{ detail.unitProductionCost | currency }}</td>
+                    <td>{{ detail.suggestedPrice | currency }}</td>
+                    <td>{{ detail.totalLinePrice | currency }}</td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="rowexpansion" let-detail>
+                  <tr>
+                    <td colspan="6">
+                      <div class="p-3">
+                        <h6>Materiales del Módulo</h6>
+                        <p-table [value]="detail.subItems">
+                          <ng-template pTemplate="header">
+                            <tr>
+                              <th>Material</th>
+                              <th>Cantidad</th>
+                              <th>Costo MP</th>
+                              <th>Piezas</th>
+                              <th>Precio Unit.</th>
+                              <th>Total</th>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="body" let-subItem>
+                            <tr>
+                              <td>{{ subItem.material?.name }}</td>
+                              <td>{{ subItem.quantity }}</td>
+                              <td>{{ subItem.rawMaterialCost | currency }}</td>
+                              <td>{{ subItem.pieces }}</td>
+                              <td>{{ subItem.unitPrice | currency }}</td>
+                              <td>{{ subItem.totalPrice | currency }}</td>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="emptymessage">
+                            <tr>
+                              <td colspan="6" class="text-center">No hay materiales</td>
+                            </tr>
+                          </ng-template>
+                        </p-table>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center">No se encontraron cotizaciones</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- DIALOGO MASTER-DETAIL -->
+  <p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Cotización' : 'Nueva Cotización'" [modal]="true"
+    [style]="{ width: '90vw', maxHeight: '90vh' }" [draggable]="false" [resizable]="false">
+    <form [formGroup]="quotationForm">
+      <div class="flex flex-column gap-3">
+
+        <!-- Cliente y Vendedor -->
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="customerDocumentNumber">Cliente *</label>
+            <p-select id="customerDocumentNumber" formControlName="customerDocumentNumber"
+              [options]="customers" optionLabel="companyName" optionValue="documentNumber"
+              placeholder="Seleccione cliente" class="w-full" [filter]="true" />
+            <small class="text-red-500"
+              *ngIf="quotationForm.get('customerDocumentNumber')?.invalid && quotationForm.get('customerDocumentNumber')?.touched">
+              El cliente es requerido
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="employeeDocumentNumber">Vendedor *</label>
+            <p-select id="employeeDocumentNumber" formControlName="employeeDocumentNumber"
+              [options]="employees" optionLabel="fullName" optionValue="documentNumber"
+              placeholder="Seleccione vendedor" class="w-full" [filter]="true" />
+            <small class="text-red-500"
+              *ngIf="quotationForm.get('employeeDocumentNumber')?.invalid && quotationForm.get('employeeDocumentNumber')?.touched">
+              El vendedor es requerido
+            </small>
+          </div>
+        </div>
+
+        <!-- DETAILS (Módulos) -->
+        <div class="flex justify-content-between align-items-center">
+          <h4>Módulos</h4>
+          <p-button label="Agregar Módulo" icon="pi pi-plus" (onClick)="addDetail()" severity="secondary" size="small" />
+        </div>
+
+        <div formArrayName="details">
+          <div *ngFor="let detail of details.controls; let i = index" [formGroupName]="i" class="card mb-3 p-3">
+            <div class="flex justify-content-between align-items-center mb-2">
+              <h5>Módulo #{{ i + 1 }}</h5>
+              <p-button icon="pi pi-times" (onClick)="removeDetail(i)" severity="danger" [text]="true" [rounded]="true" />
+            </div>
+
+            <div class="formgrid grid">
+              <div class="field col-4">
+                <label>Módulo *</label>
+                <p-select formControlName="moduleId" [options]="modules" optionLabel="name" optionValue="id"
+                  placeholder="Seleccione" class="w-full" />
+              </div>
+              <div class="field col-2">
+                <label>Cantidad *</label>
+                <p-inputNumber formControlName="quantity" [min]="1" class="w-full" />
+              </div>
+              <div class="field col-2">
+                <label>Transporte</label>
+                <p-inputNumber formControlName="transportationCost" mode="currency" currency="USD"
+                  [minFractionDigits]="2" class="w-full" />
+              </div>
+              <div class="field col-2">
+                <label>M. Obra</label>
+                <p-inputNumber formControlName="laborCost" mode="currency" currency="USD"
+                  [minFractionDigits]="2" class="w-full" />
+              </div>
+              <div class="field col-2">
+                <label>Empaque</label>
+                <p-inputNumber formControlName="packingCost" mode="currency" currency="USD"
+                  [minFractionDigits]="2" class="w-full" />
+              </div>
+            </div>
+
+            <!-- SUBITEMS (Materiales) -->
+            <div class="flex justify-content-between align-items-center mt-3 mb-2">
+              <h6>Materiales del Módulo</h6>
+              <p-button label="Agregar Material" icon="pi pi-plus" (onClick)="addSubItem(i)" size="small" />
+            </div>
+
+            <div formArrayName="subItems">
+              <div *ngFor="let subItem of getSubItems(i).controls; let j = index" [formGroupName]="j"
+                class="formgrid grid align-items-end mb-2">
+                <div class="field col-3">
+                  <label>Material *</label>
+                  <p-select formControlName="materialId" [options]="materials" optionLabel="name" optionValue="id"
+                    placeholder="Seleccione" class="w-full" />
+                </div>
+                <div class="field col-2">
+                  <label>Cantidad *</label>
+                  <p-inputNumber formControlName="quantity" [minFractionDigits]="4" [min]="0.0001" class="w-full" />
+                </div>
+                <div class="field col-3">
+                  <label>Costo MP *</label>
+                  <p-inputNumber formControlName="rawMaterialCost" mode="currency" currency="USD"
+                    [minFractionDigits]="2" class="w-full" />
+                </div>
+                <div class="field col-2">
+                  <label>Piezas *</label>
+                  <p-inputNumber formControlName="pieces" [min]="1" class="w-full" />
+                </div>
+                <div class="field col-2">
+                  <p-button icon="pi pi-trash" (onClick)="removeSubItem(i, j)" severity="danger" [text]="true" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-content-end gap-2 mt-4">
+        <p-button label="Cancelar" severity="secondary" (onClick)="hideDialog()" type="button" />
+        <p-button label="Guardar" (onClick)="saveQuotation()" [disabled]="quotationForm.invalid" />
+      </div>
+    </form>
+  </p-dialog>
+</div>
