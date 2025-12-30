@@ -68,7 +68,16 @@ export const routes: Routes = [
 	{
 		path: 'quotations',
 		canActivate: [authGuard],
-		loadComponent: () => import('./features/quotations/quotations/quotations.component').then((m) => m.QuotationsComponent)
+		children: [
+			{
+				path: 'modules',
+				loadComponent: () => import('./features/quotations/modules/modules.component').then((m) => m.ModulesComponent)
+			},
+			{
+				path: '',
+				loadComponent: () => import('./features/quotations/quotations/quotations.component').then((m) => m.QuotationsComponent)
+			}
+		]
 	},
 	{ path: '**', redirectTo: 'auth/login' }
 ];

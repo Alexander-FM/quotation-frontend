@@ -86,7 +86,7 @@ export class AppComponent implements OnInit {
         label: 'Cotizaciones',
         icon: 'pi-wallet',
         items: [
-          { label: 'Modulos', icon: 'pi-sitemap', disabled: true },
+          { label: 'Módulos', icon: 'pi-sitemap', routerLink: '/quotations/modules' },
           { label: 'Cotizaciones', icon: 'pi-file-edit', routerLink: '/quotations' }
         ]
       },

@@ -1,0 +1,150 @@
+<div class="p-4">
+  <p-toast />
+  <p-confirmDialog />
+
+  <div class="card">
+    <div class="flex justify-content-between align-items-center mb-4">
+      <h2 class="m-0">Gestión de Módulos</h2>
+      <p-button label="Nuevo Módulo" icon="pi pi-plus" (onClick)="openNew()" severity="success" />
+    </div>
+
+    <p-table [value]="modules" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]" [loading]="loading"
+      [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} módulos"
+      [tableStyle]="{ 'min-width': '75rem' }">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5%">ID</th>
+          <th style="width: 20%">Nombre</th>
+          <th style="width: 15%">Dimensiones</th>
+          <th style="width: 10%">Gastos (%)</th>
+          <th style="width: 10%">FEE (%)</th>
+          <th style="width: 10%">Rebaja (%)</th>
+          <th style="width: 10%">Margen (%)</th>
+          <th style="width: 8%">Estado</th>
+          <th style="width: 12%">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-mod>
+        <tr>
+          <td>{{ mod.id }}</td>
+          <td>{{ mod.name }}</td>
+          <td>{{ mod.dimensions || '-' }}</td>
+          <td>{{ mod.overheadsCostPercentage != null ? (mod.overheadsCostPercentage | number: '1.2-2') + '%' : '-' }}</td>
+          <td>{{ mod.feePercentage != null ? (mod.feePercentage | number: '1.2-2') + '%' : '-' }}</td>
+          <td>{{ mod.rebatePercentage != null ? (mod.rebatePercentage | number: '1.2-2') + '%' : '-' }}</td>
+          <td>{{ mod.profitMarginPercentage != null ? (mod.profitMarginPercentage | number: '1.2-2') + '%' : '-' }}</td>
+          <td>
+            <p-tag [value]="mod.isActive ? 'Activo' : 'Inactivo'" [severity]="mod.isActive ? 'success' : 'danger'" />
+          </td>
+          <td>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="editModule(mod)"
+              class="mr-2" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+              (onClick)="deleteModule(mod)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center">No se encontraron módulos</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Módulo' : 'Nuevo Módulo'" [modal]="true"
+    [style]="{ width: '800px' }" [draggable]="false" [resizable]="false">
+    <form [formGroup]="moduleForm">
+      <div class="flex flex-column gap-3">
+        <div class="flex flex-column gap-2">
+          <label htmlFor="name">Nombre *</label>
+          <input pInputText id="name" formControlName="name" placeholder="Ingrese el nombre del módulo" />
+          <small class="text-red-500" *ngIf="moduleForm.get('name')?.invalid && moduleForm.get('name')?.touched">
+            El nombre es requerido (máx. 100 caracteres)
+          </small>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label htmlFor="description">Descripción</label>
+          <textarea pInputText id="description" formControlName="description" rows="3"
+            placeholder="Ingrese la descripción" class="w-full"></textarea>
+          <small class="text-red-500"
+            *ngIf="moduleForm.get('description')?.invalid && moduleForm.get('description')?.touched">
+            Máximo 255 caracteres
+          </small>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label htmlFor="dimensions">Dimensiones</label>
+          <input pInputText id="dimensions" formControlName="dimensions"
+            placeholder="Ej: 100x200x50 cm" />
+          <small class="text-red-500"
+            *ngIf="moduleForm.get('dimensions')?.invalid && moduleForm.get('dimensions')?.touched">
+            Máximo 100 caracteres
+          </small>
+        </div>
+
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="overheadsCostPercentage">Gastos Generales (%) *</label>
+            <p-inputNumber id="overheadsCostPercentage" formControlName="overheadsCostPercentage"
+              [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100"
+              placeholder="0.00" suffix="%" class="w-full" />
+            <small class="text-red-500"
+              *ngIf="moduleForm.get('overheadsCostPercentage')?.invalid && moduleForm.get('overheadsCostPercentage')?.touched">
+              Este campo es requerido y debe estar entre 0 y 100
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="feePercentage">FEE (%) *</label>
+            <p-inputNumber id="feePercentage" formControlName="feePercentage"
+              [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100"
+              placeholder="0.00" suffix="%" class="w-full" />
+            <small class="text-red-500"
+              *ngIf="moduleForm.get('feePercentage')?.invalid && moduleForm.get('feePercentage')?.touched">
+              Este campo es requerido y debe estar entre 0 y 100
+            </small>
+          </div>
+        </div>
+
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label htmlFor="rebatePercentage">Rebaja (%) *</label>
+            <p-inputNumber id="rebatePercentage" formControlName="rebatePercentage"
+              [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100"
+              placeholder="0.00" suffix="%" class="w-full" />
+            <small class="text-red-500"
+              *ngIf="moduleForm.get('rebatePercentage')?.invalid && moduleForm.get('rebatePercentage')?.touched">
+              Este campo es requerido y debe estar entre 0 y 100
+            </small>
+          </div>
+
+          <div class="field col-6">
+            <label htmlFor="profitMarginPercentage">Margen de Ganancia (%) *</label>
+            <p-inputNumber id="profitMarginPercentage" formControlName="profitMarginPercentage"
+              [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100"
+              placeholder="0.00" suffix="%" class="w-full" />
+            <small class="text-red-500"
+              *ngIf="moduleForm.get('profitMarginPercentage')?.invalid && moduleForm.get('profitMarginPercentage')?.touched">
+              Este campo es requerido y debe estar entre 0 y 100
+            </small>
+          </div>
+        </div>
+
+        <div class="flex align-items-center gap-2">
+          <p-checkbox formControlName="isActive" [binary]="true" inputId="isActive" />
+          <label htmlFor="isActive">Activo</label>
+        </div>
+      </div>
+
+      <div class="flex justify-content-end gap-2 mt-4">
+        <p-button label="Cancelar" severity="secondary" (onClick)="hideDialog()" type="button" />
+        <p-button label="Guardar" (onClick)="saveModule()" [disabled]="moduleForm.invalid" />
+      </div>
+    </form>
+  </p-dialog>
+</div>
