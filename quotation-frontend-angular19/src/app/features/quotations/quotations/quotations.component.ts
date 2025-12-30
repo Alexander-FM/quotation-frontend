@@ -50,6 +50,7 @@ export class QuotationsComponent implements OnInit {
   isEditMode = false;
   loading = false;
   expandedRows: any = {};
+  expandedDetailsRows: any = {};
 
   QuotationState = QuotationState;
 
