@@ -11,10 +11,13 @@ export interface MaterialRequestDto {
   description?: string;
   unitCost: number;
   unidadOfMeasurementName: string;
-  calculationType?: MaterialCalculationTypeEnum;
   adjustmentFactorName?: string;
   adjustmentFactorValue?: number;
+  hasFactorAdjustment?: boolean;
   thicknessMicrons?: number;
+  defaultWidth?: number;
+  defaultLength?: number;
+  areaCoverage?: number;
   isActive: boolean;
 }
 
@@ -24,10 +27,13 @@ export interface MaterialResponseDto {
   description?: string;
   unitCost: number;
   unidadOfMeasurementName: string;
-  calculationType?: MaterialCalculationTypeEnum;
   adjustmentFactorName?: string;
   adjustmentFactorValue?: number;
+  hasFactorAdjustment?: boolean;
   thicknessMicrons?: number;
+  defaultWidth?: number;
+  defaultLength?: number;
+  areaCoverage?: number;
   isActive: boolean;
 }
 

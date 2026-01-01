@@ -16,6 +16,7 @@ import { CustomerService } from '../../../services/customer.service';
 import { EmployeeService } from '../../../services/employee.service';
 import { ModuleService } from '../../../services/module.service';
 import { MaterialService } from '../../../services/material.service';
+import { AuthService } from '../../../services/auth.service';
 import { QuotationResponseDto, QuotationState } from '../../../models/quotation.model';
 import { ErrorParser } from '../../../utils/error-parser.util';
 
@@ -51,6 +52,7 @@ export class QuotationsComponent implements OnInit {
   loading = false;
   expandedRows: any = {};
   expandedDetailsRows: any = {};
+  currentUserId: number | null = null;
 
   QuotationState = QuotationState;
 
@@ -60,6 +62,7 @@ export class QuotationsComponent implements OnInit {
     private employeeService: EmployeeService,
     private moduleService: ModuleService,
     private materialService: MaterialService,
+    private authService: AuthService,
     private fb: FormBuilder,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
@@ -110,7 +113,7 @@ export class QuotationsComponent implements OnInit {
       materialId: [null, [Validators.required]],
       quantity: [0, [Validators.required, Validators.min(0.0001)]],
       rawMaterialCost: [0, [Validators.required, Validators.min(0)]],
-      pieces: [1, [Validators.required, Validators.min(1)]]
+      pieces: [null]
     });
   }
 
@@ -161,6 +164,19 @@ export class QuotationsComponent implements OnInit {
     this.employeeService.getAll().subscribe({
       next: (response) => {
         this.employees = (response.body || []).filter(e => e.isActive);
+        // Obtener userId del usuario logueado (por ahora usamos username para identificar)
+        const username = this.authService.getUsername();
+        if (username && this.employees.length > 0) {
+          // Buscar el empleado que tenga el mismo username del usuario logueado
+          const currentEmployee = this.employees.find(e => e.userResponseDto?.username === username);
+          if (currentEmployee) {
+            this.currentUserId = currentEmployee.userResponseDto?.id;
+            // Preseleccionar el empleado en modo crear
+            if (!this.isEditMode) {
+              this.quotationForm.patchValue({ employeeDocumentNumber: currentEmployee.documentNumber });
+            }
+          }
+        }
       },
       error: (error) => {
         const errorInfo = ErrorParser.parse(error);
@@ -198,6 +214,13 @@ export class QuotationsComponent implements OnInit {
     this.quotationForm.reset();
     this.details.clear();
     this.addDetail();
+    // Preseleccionar el empleado actual si existe
+    if (this.currentUserId) {
+      const currentEmployee = this.employees.find(e => e.userResponseDto?.id === this.currentUserId);
+      if (currentEmployee) {
+        this.quotationForm.patchValue({ employeeDocumentNumber: currentEmployee.documentNumber });
+      }
+    }
     this.displayDialog = true;
   }
 

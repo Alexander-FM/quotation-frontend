@@ -222,11 +222,11 @@
               <div class="field col-3">
                 <label>Material *</label>
                 <p-select formControlName="materialId" [options]="materials" optionLabel="name" optionValue="id"
-                  placeholder="Seleccione" class="w-full" />
+                  placeholder="Seleccione" class="w-full" [filter]="true" />
               </div>
               <div class="field col-2">
                 <label>Cantidad *</label>
-                <p-inputNumber formControlName="quantity" [minFractionDigits]="4" [min]="0.0001" class="w-full" />
+                <p-inputNumber formControlName="quantity" [minFractionDigits]="2" [maxFractionDigits]="4" [min]="0.0001" class="w-full" />
               </div>
               <div class="field col-3">
                 <label>Costo MP *</label>
@@ -234,8 +234,8 @@
                   class="w-full" />
               </div>
               <div class="field col-2">
-                <label>Piezas *</label>
-                <p-inputNumber formControlName="pieces" [min]="1" class="w-full" />
+                <label>Piezas</label>
+                <p-inputNumber formControlName="pieces" class="w-full" />
               </div>
               <div class="field col-2">
                 <p-button icon="pi pi-trash" (onClick)="removeSubItem(i, j)" severity="danger" [text]="true" />

@@ -46,12 +46,11 @@ export class MaterialsComponent implements OnInit {
   materials: MaterialResponseDto[] = [];
   unitsOfMeasurement: UnitOfMeasurementResponseDto[] = [];
   adjustmentFactors: AdjustmentFactorResponseDto[] = [];
-  calculationTypes: { label: string; value: MaterialCalculationTypeEnum }[] = [];
   displayDialog = false;
   materialForm!: FormGroup;
   isEditMode = false;
   loading = false;
-  hasAdjustmentFactor = false;
+  hasFactorAdjustment = false;
   selectedFactorId: number | null = null;
   isPrintingFactorSelected = false;
 
@@ -64,7 +63,7 @@ export class MaterialsComponent implements OnInit {
     private confirmationService: ConfirmationService
   ) {
     this.initForm();
-    this.initCalculationTypes();
+
   }
 
   ngOnInit(): void {
@@ -76,23 +75,19 @@ export class MaterialsComponent implements OnInit {
   initForm(): void {
     this.materialForm = this.fb.group({
       id: [null],
-      name: ['', [Validators.required, Validators.maxLength(50)]],
+      name: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(255)]],
       unitCost: [null, [Validators.required, Validators.min(0.01)]],
       unidadOfMeasurementName: ['', [Validators.required, Validators.maxLength(20)]],
-      calculationType: [null],
-      adjustmentFactorName: ['', [Validators.maxLength(50)]],
+      adjustmentFactorName: [''],
       adjustmentFactorValue: [null],
+      hasFactorAdjustment: [false],
       thicknessMicrons: [null],
+      defaultWidth: [null],
+      defaultLength: [null],
+      areaCoverage: [null],
       isActive: [true]
     });
-  }
-
-  initCalculationTypes(): void {
-    this.calculationTypes = Object.values(MaterialCalculationTypeEnum).map(value => ({
-      label: value,
-      value: value as MaterialCalculationTypeEnum
-    }));
   }
 
   private normalizeCalcType(value: any): MaterialCalculationTypeEnum | null {
@@ -159,21 +154,38 @@ export class MaterialsComponent implements OnInit {
   openNew(): void {
     this.isEditMode = false;
     this.materialForm.reset({ isActive: true });
-    this.hasAdjustmentFactor = false;
+    this.hasFactorAdjustment = false;
     this.selectedFactorId = null;
+    this.isPrintingFactorSelected = false;
     this.displayDialog = true;
   }
 
   onAdjustmentFactorToggle(event: any): void {
-    this.hasAdjustmentFactor = event.checked;
+    this.hasFactorAdjustment = event.checked;
     this.isPrintingFactorSelected = false;
-    if (!this.hasAdjustmentFactor) {
+    if (!this.hasFactorAdjustment) {
       this.selectedFactorId = null;
       this.materialForm.patchValue({
         adjustmentFactorName: null,
-        adjustmentFactorValue: null
+        adjustmentFactorValue: null,
+        thicknessMicrons: null,
+        defaultWidth: null,
+        defaultLength: null,
+        areaCoverage: null
       });
+      // Remover validadores
+      this.materialForm.get('thicknessMicrons')?.clearValidators();
+      this.materialForm.get('defaultWidth')?.clearValidators();
+      this.materialForm.get('defaultLength')?.clearValidators();
+      this.materialForm.get('areaCoverage')?.clearValidators();
+    } else {
+      // Agregar validadores
+      this.setValidatorsForPrintingFactor();
     }
+    this.materialForm.get('thicknessMicrons')?.updateValueAndValidity();
+    this.materialForm.get('defaultWidth')?.updateValueAndValidity();
+    this.materialForm.get('defaultLength')?.updateValueAndValidity();
+    this.materialForm.get('areaCoverage')?.updateValueAndValidity();
   }
 
   onFactorSelected(factorId: number | null): void {
@@ -192,25 +204,68 @@ export class MaterialsComponent implements OnInit {
         adjustmentFactorValue: selectedFactor.value
       });
 
-      // Si el factor contiene "impresion" o "impresión", limpiar thicknessMicrons
+      // Si el factor contiene "impresion" o "impresión", mostrar areaCoverage y limpiar otros campos
       const nameL = selectedFactor.name.toLowerCase();
       this.isPrintingFactorSelected = nameL.includes('impresion') || nameL.includes('impresión');
       if (this.isPrintingFactorSelected) {
-        this.materialForm.patchValue({ thicknessMicrons: null });
+        this.materialForm.patchValue({
+          thicknessMicrons: null,
+          defaultWidth: null,
+          defaultLength: null
+        });
+        // Remover validadores de los 3 campos
+        this.materialForm.get('thicknessMicrons')?.clearValidators();
+        this.materialForm.get('defaultWidth')?.clearValidators();
+        this.materialForm.get('defaultLength')?.clearValidators();
+        // Agregar validador solo para areaCoverage
+        this.materialForm.get('areaCoverage')?.setValidators([Validators.required, Validators.min(0.01)]);
+      } else {
+        this.materialForm.patchValue({
+          areaCoverage: null
+        });
+        // Remover validador de areaCoverage
+        this.materialForm.get('areaCoverage')?.clearValidators();
+        // Agregar validadores para los 3 campos
+        this.materialForm.get('thicknessMicrons')?.setValidators([Validators.required, Validators.min(1)]);
+        this.materialForm.get('defaultWidth')?.setValidators([Validators.required, Validators.min(0.01)]);
+        this.materialForm.get('defaultLength')?.setValidators([Validators.required, Validators.min(0.01)]);
       }
+      this.materialForm.get('thicknessMicrons')?.updateValueAndValidity();
+      this.materialForm.get('defaultWidth')?.updateValueAndValidity();
+      this.materialForm.get('defaultLength')?.updateValueAndValidity();
+      this.materialForm.get('areaCoverage')?.updateValueAndValidity();
+    }
+  }
+
+  private setValidatorsForPrintingFactor(): void {
+    if (this.isPrintingFactorSelected) {
+      this.materialForm.get('areaCoverage')?.setValidators([Validators.required, Validators.min(0.01)]);
+      this.materialForm.get('thicknessMicrons')?.clearValidators();
+      this.materialForm.get('defaultWidth')?.clearValidators();
+      this.materialForm.get('defaultLength')?.clearValidators();
+    } else {
+      this.materialForm.get('thicknessMicrons')?.setValidators([Validators.required, Validators.min(1)]);
+      this.materialForm.get('defaultWidth')?.setValidators([Validators.required, Validators.min(0.01)]);
+      this.materialForm.get('defaultLength')?.setValidators([Validators.required, Validators.min(0.01)]);
+      this.materialForm.get('areaCoverage')?.clearValidators();
     }
   }
 
   editMaterial(mat: MaterialResponseDto): void {
     this.isEditMode = true;
-    this.hasAdjustmentFactor = !!mat.adjustmentFactorName;
+    this.hasFactorAdjustment = !!mat.hasFactorAdjustment;
 
     // Buscar el factor de ajuste por nombre para obtener su ID
     if (mat.adjustmentFactorName) {
       const factor = this.adjustmentFactors.find(f => f.name === mat.adjustmentFactorName);
       this.selectedFactorId = factor?.id || null;
+
+      // Detectar si es factor de impresión
+      const nameL = mat.adjustmentFactorName.toLowerCase();
+      this.isPrintingFactorSelected = nameL.includes('impresion') || nameL.includes('impresión');
     } else {
       this.selectedFactorId = null;
+      this.isPrintingFactorSelected = false;
     }
 
     this.materialForm.patchValue({
@@ -219,10 +274,13 @@ export class MaterialsComponent implements OnInit {
       description: mat.description || '',
       unitCost: mat.unitCost,
       unidadOfMeasurementName: mat.unidadOfMeasurementName,
-      calculationType: this.normalizeCalcType(mat.calculationType),
       adjustmentFactorName: mat.adjustmentFactorName || '',
       adjustmentFactorValue: mat.adjustmentFactorValue || null,
+      hasFactorAdjustment: mat.hasFactorAdjustment || false,
       thicknessMicrons: mat.thicknessMicrons || null,
+      defaultWidth: mat.defaultWidth || null,
+      defaultLength: mat.defaultLength || null,
+      areaCoverage: mat.areaCoverage || null,
       isActive: mat.isActive
     });
     this.displayDialog = true;
@@ -267,9 +325,13 @@ export class MaterialsComponent implements OnInit {
     const formValue = this.materialForm.value;
     const payload: MaterialRequestDto = {
       ...formValue,
-      adjustmentFactorName: this.hasAdjustmentFactor ? formValue.adjustmentFactorName : null,
-      adjustmentFactorValue: this.hasAdjustmentFactor ? formValue.adjustmentFactorValue : null,
-      thicknessMicrons: this.hasAdjustmentFactor ? formValue.thicknessMicrons : null
+      hasFactorAdjustment: this.hasFactorAdjustment,
+      adjustmentFactorName: this.hasFactorAdjustment ? formValue.adjustmentFactorName : null,
+      adjustmentFactorValue: this.hasFactorAdjustment ? formValue.adjustmentFactorValue : null,
+      thicknessMicrons: this.hasFactorAdjustment && !this.isPrintingFactorSelected ? formValue.thicknessMicrons : null,
+      defaultWidth: this.hasFactorAdjustment && !this.isPrintingFactorSelected ? formValue.defaultWidth : null,
+      defaultLength: this.hasFactorAdjustment && !this.isPrintingFactorSelected ? formValue.defaultLength : null,
+      areaCoverage: this.hasFactorAdjustment && this.isPrintingFactorSelected ? formValue.areaCoverage : null
     };
     const request$ = this.isEditMode
       ? this.materialService.update(payload.id!, payload)

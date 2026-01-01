@@ -18,8 +18,8 @@
           <th style="width: 15%">Nombre</th>
           <th style="width: 10%">Costo Unit.</th>
           <th style="width: 12%">Unidad</th>
-          <th style="width: 15%">Tipo Cálc.</th>
-          <th style="width: 10%">Espesor (μ)</th>
+          <th style="width: 12%">Ancho</th>
+          <th style="width: 12%">Largo</th>
           <th style="width: 8%">Estado</th>
           <th style="width: 10%">Acciones</th>
         </tr>
@@ -31,8 +31,8 @@
           <td>{{ mat.name }}</td>
           <td>{{ mat.unitCost | currency }}</td>
           <td>{{ mat.unidadOfMeasurementName }}</td>
-          <td>{{ getCalculationTypeLabel(mat.calculationType) }}</td>
-          <td>{{ mat.thicknessMicrons || '-' }}</td>
+          <td>{{ mat.defaultWidth || '-' }}</td>
+          <td>{{ mat.defaultLength || '-' }}</td>
           <td>
             <p-tag [value]="mat.isActive ? 'Activo' : 'Inactivo'" [severity]="mat.isActive ? 'success' : 'danger'" />
           </td>
@@ -47,7 +47,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="9" class="text-center">No se encontraron materiales</td>
+          <td colspan="8" class="text-center">No se encontraron materiales</td>
         </tr>
       </ng-template>
     </p-table>
@@ -98,29 +98,21 @@
           </div>
         </div>
 
-        <div class="formgrid grid">
-          <div class="field col-6">
-            <label htmlFor="calculationType">Tipo de Cálculo</label>
-            <p-select id="calculationType" formControlName="calculationType" [options]="calculationTypes"
-              optionLabel="label" optionValue="value" placeholder="Seleccione" class="w-full" />
-          </div>
-        </div>
-
         <div class="flex flex-column gap-2">
           <div class="flex align-items-center gap-2">
-            <p-checkbox [(ngModel)]="hasAdjustmentFactor" [ngModelOptions]="{standalone: true}"
-              (onChange)="onAdjustmentFactorToggle($event)" [binary]="true" inputId="hasAdjustmentFactor" />
-            <label htmlFor="hasAdjustmentFactor">¿El material cuenta con ajuste de factor?</label>
+            <p-checkbox [(ngModel)]="hasFactorAdjustment" [ngModelOptions]="{standalone: true}"
+              (onChange)="onAdjustmentFactorToggle($event)" [binary]="true" inputId="hasFactorAdjustment" />
+            <label htmlFor="hasFactorAdjustment">¿El material cuenta con ajuste de factor?</label>
           </div>
         </div>
 
-        <div *ngIf="hasAdjustmentFactor" class="formgrid grid">
+        <div *ngIf="hasFactorAdjustment" class="formgrid grid">
           <div class="field col-6">
             <label htmlFor="adjustmentFactorSelect">Factor de Ajuste *</label>
             <p-select id="adjustmentFactorSelect" [(ngModel)]="selectedFactorId" [ngModelOptions]="{standalone: true}"
               [options]="adjustmentFactors" optionLabel="name" optionValue="id" placeholder="Seleccione un factor"
               (onChange)="onFactorSelected($event.value)" class="w-full" />
-            <small class="text-red-500" *ngIf="hasAdjustmentFactor && !selectedFactorId">
+            <small class="text-red-500" *ngIf="hasFactorAdjustment && !selectedFactorId">
               Debe seleccionar un factor de ajuste
             </small>
           </div>
@@ -132,13 +124,44 @@
           </div>
         </div>
 
-        <div *ngIf="hasAdjustmentFactor" class="formgrid grid">
-          <div class="field col-6">
-            <label htmlFor="thicknessMicrons">Espesor (Micrones)</label>
+        <!-- Campos para factores NO impresión -->
+        <div *ngIf="hasFactorAdjustment && !isPrintingFactorSelected" class="formgrid grid">
+          <div class="field col-4">
+            <label htmlFor="thicknessMicrons">Espesor (Micrones) *</label>
             <p-inputNumber id="thicknessMicrons" formControlName="thicknessMicrons" [useGrouping]="false"
-              placeholder="1000 Micrones" class="w-full" [disabled]="isPrintingFactorSelected" />
-            <small class="text-red-500" *ngIf="isPrintingFactorSelected">
-              Para factor de impresión, el espesor no se aplica
+              placeholder="1000 Micrones" class="w-full" />
+            <small class="text-red-500" *ngIf="materialForm.get('thicknessMicrons')?.invalid && materialForm.get('thicknessMicrons')?.touched && hasFactorAdjustment && !isPrintingFactorSelected">
+              El espesor es requerido
+            </small>
+          </div>
+
+          <div class="field col-4">
+            <label htmlFor="defaultWidth">Ancho Predeterminado (cm) *</label>
+            <p-inputNumber id="defaultWidth" formControlName="defaultWidth" [minFractionDigits]="2" [maxFractionDigits]="2"
+              placeholder="0.00" class="w-full" />
+            <small class="text-red-500" *ngIf="materialForm.get('defaultWidth')?.invalid && materialForm.get('defaultWidth')?.touched && hasFactorAdjustment && !isPrintingFactorSelected">
+              El ancho es requerido
+            </small>
+          </div>
+
+          <div class="field col-4">
+            <label htmlFor="defaultLength">Largo Predeterminado (cm) *</label>
+            <p-inputNumber id="defaultLength" formControlName="defaultLength" [minFractionDigits]="2" [maxFractionDigits]="2"
+              placeholder="0.00" class="w-full" />
+            <small class="text-red-500" *ngIf="materialForm.get('defaultLength')?.invalid && materialForm.get('defaultLength')?.touched && hasFactorAdjustment && !isPrintingFactorSelected">
+              El largo es requerido
+            </small>
+          </div>
+        </div>
+
+        <!-- Campo para factores con impresión -->
+        <div *ngIf="hasFactorAdjustment && isPrintingFactorSelected" class="formgrid grid">
+          <div class="field col-12">
+            <label htmlFor="areaCoverage">Cobertura de Área (m²) *</label>
+            <p-inputNumber id="areaCoverage" formControlName="areaCoverage" [minFractionDigits]="2" [maxFractionDigits]="2"
+              placeholder="0.00" class="w-full" />
+            <small class="text-red-500" *ngIf="materialForm.get('areaCoverage')?.invalid && materialForm.get('areaCoverage')?.touched && hasFactorAdjustment && isPrintingFactorSelected">
+              La cobertura de área es requerida
             </small>
           </div>
         </div>
@@ -151,7 +174,7 @@
 
       <div class="flex justify-content-end gap-2 mt-4">
         <p-button label="Cancelar" severity="secondary" (onClick)="hideDialog()" type="button" />
-        <p-button label="Guardar" (onClick)="saveMaterial()" [disabled]="materialForm.invalid || (hasAdjustmentFactor && !selectedFactorId)" />
+        <p-button label="Guardar" (onClick)="saveMaterial()" [disabled]="materialForm.invalid || (hasFactorAdjustment && !selectedFactorId)" />
       </div>
     </form>
   </p-dialog>
