@@ -308,6 +308,21 @@ export class QuotationsComponent implements OnInit {
     });
   }
 
+  onMaterialSelected(detailIndex: number, subItemIndex: number, materialId: number | null): void {
+    if (!materialId) {
+      // Limpiar costo si no hay material seleccionado
+      this.getSubItems(detailIndex).at(subItemIndex).patchValue({ rawMaterialCost: 0 });
+      return;
+    }
+
+    const selectedMaterial = this.materials.find(m => m.id === materialId);
+    if (selectedMaterial) {
+      this.getSubItems(detailIndex).at(subItemIndex).patchValue({
+        rawMaterialCost: selectedMaterial.unitCost || 0
+      });
+    }
+  }
+
   saveQuotation(): void {
     if (this.quotationForm.invalid) {
       this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'Por favor completa todos los campos requeridos correctamente' });

@@ -222,7 +222,7 @@
               <div class="field col-3">
                 <label>Material *</label>
                 <p-select formControlName="materialId" [options]="materials" optionLabel="name" optionValue="id"
-                  placeholder="Seleccione" class="w-full" [filter]="true" />
+                  placeholder="Seleccione" class="w-full" [filter]="true" (onChange)="onMaterialSelected(i, j, $event.value)" />
               </div>
               <div class="field col-2">
                 <label>Cantidad *</label>
